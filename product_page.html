@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Product Page</title>
+    <!-- Bootstrap CSS for styling -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Basic styling for body */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Card styling */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+            height: 100%;
+        }
+
+        /* Card hover effect */
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Card image styling */
+        .card-img-top {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Card body styling */
+        .card-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        /* Card title styling */
+        .card-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        /* Card text styling */
+        .card-text {
+            color: #666;
+        }
+
+        /* Button styling */
+        .btn {
+            margin-top: auto; /* Align button to bottom of card body */
+        }
+
+        /* Header styling */
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        /* Quantity input styling */
+        .quantity-input {
+            width: 60px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">E-Commerce Product Page</h1>
+        
+        <!-- Search and Price Range Filter Section -->
+        <div class="d-flex align-items-center mb-4">
+            <input type="text" id="search" class="form-control mr-3" placeholder="Search for products..." style="flex: 1;">
+            <div class="select-wrapper" style="flex: 0 0 25%;">
+                <select id="price-range" class="form-control">
+                    <option value="">Select Price Range</option>
+                    <option value="0-50">Under $50</option>
+                    <option value="51-100">$51 - $100</option>
+                    <option value="101-200">$101 - $200</option>
+                    <option value="201-300">$201 - $300</option>
+                    <option value="301-500">$301 - $500</option>
+                    <option value="500-1000">$500 - $1000</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Section to display products -->
+        <div id="product-list" class="row">
+            <!-- Product cards will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- JavaScript includes -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        /**
+         * Function to display products on the page.
+         * @param {Array} products - Array of product objects.
+         */
+        function displayProducts(products) {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = ''; // Clear existing product cards
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.classList.add('col-lg-3', 'col-md-4', 'col-sm-6', 'mb-4');
+
+                // Set the inner HTML for the card
+                card.innerHTML = `
+                    <div class="card h-100">
+                        <img src="${product.image}" class="card-img-top" alt="${product.name}">
+                        <div class="card-body">
+                            <h5 class="card-title">${product.name}</h5>
+                            <p class="card-text">${product.description}</p>
+                            <p class="card-text font-weight-bold">$${product.price.toFixed(2)}</p>
+                            <div class="d-flex align-items-center">
+                                <input type="number" class="quantity-input" value="1" min="1">
+                                <a href="#" class="btn btn-primary add-to-cart" data-product='${JSON.stringify(product)}'>Add to Cart</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Append the card to the product list container
+                productList.appendChild(card);
+            });
+
+            // Attach event listeners for 'Add to Cart' buttons
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const product = JSON.parse(event.target.getAttribute('data-product'));
+                    const quantityInput = event.target.previousElementSibling;
+                    const quantity = parseInt(quantityInput.value);
+                    addToCart(product, quantity);
+                });
+            });
+        }
+
+        /**
+         * Product class constructor.
+         * @param {string} name - Product name.
+         * @param {number} price - Product price.
+         * @param {string} description - Product description.
+         * @param {string} image - Product image URL.
+         */
+        class Product {
+            constructor(name, price, description, image) {
+                this.name = name;
+                this.price = price;
+                this.description = description;
+                this.image = image;
+            }
+
+            /**
+             * Returns HTML representation of the product card.
+             * @return {string} HTML string for the product card.
+             */
+            display() {
+                return `
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="card h-100">
+                            <img src="${this.image}" class="card-img-top" alt="${this.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${this.name}</h5>
+                                <p class="card-text">${this.description}</p>
+                                <p class="card-text font-weight-bold">$${this.price.toFixed(2)}</p>
+                                <div class="d-flex align-items-center">
+                                    <input type="number" class="quantity-input" value="1" min="1">
+                                    <a href="#" class="btn btn-primary add-to-cart" data-product='${JSON.stringify(this)}'>Add to Cart</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * DiscountedProduct class extending Product with additional discount.
+         * @param {string} name - Product name.
+         * @param {number} price - Product price.
+         * @param {string} description - Product description.
+         * @param {string} image - Product image URL.
+         * @param {number} discount - Discount percentage.
+         */
+        class DiscountedProduct extends Product {
+            constructor(name, price, description, image, discount) {
+                super(name, price, description, image); // Call the parent class constructor
+                this.discount = discount;
+            }
+
+            /**
+             * Returns HTML representation of the discounted product card.
+             * @return {string} HTML string for the discounted product card.
+             */
+            display() {
+                const discountedPrice = this.price - (this.price * (this.discount / 100));
+                return `
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="card h-100">
+                            <img src="${this.image}" class="card-img-top" alt="${this.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${this.name}</h5>
+                                <p class="card-text">${this.description}</p>
+                                <p class="card-text font-weight-bold">$${discountedPrice.toFixed(2)}
+                                    <span class="badge badge-danger">${this.discount}% OFF</span>
+                                </p>
+                                <div class="d-flex align-items-center">
+                                    <input type="number" class="quantity-input" value="1" min="1">
+                                    <a href="#" class="btn btn-primary add-to-cart" data-product='${JSON.stringify(this)}'>Add to Cart</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * Function to add a product to the cart.
+         * @param {Object} product - Product object.
+         * @param {number} quantity - Quantity to add.
+         */
+        function addToCart(product, quantity) {
+            try {
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const existingProduct = cart.find(item => item.name === product.name);
+
+                if (existingProduct) {
+                    existingProduct.quantity += quantity; // Update quantity if product already in cart
+                } else {
+                    product.quantity = quantity; // Set quantity for new product
+                    cart.push(product); // Add new product to cart
+                }
+
+                localStorage.setItem('cart', JSON.stringify(cart)); // Save updated cart to local storage
+                alert('Product added to cart!'); // Notify user
+            } catch (error) {
+                console.error('Error adding product to cart:', error); // Logs the error
+                alert('Failed to add product to cart. Please try again.'); // Alerts the user
+            }
+        }
+
+        /**
+         * Function to apply filters based on search query and price range.
+         */
+        function applyFilters() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const priceRange = document.getElementById('price-range').value;
+            let minPrice = 0;
+            let maxPrice = Infinity;
+
+            if (priceRange) {
+                [minPrice, maxPrice] = priceRange.split('-').map(Number);
+            }
+
+            // Filter products based on query and price range
+            const filteredProducts = window.products.filter(product => {
+                const isNameMatch = product.name.toLowerCase().includes(query);
+                const isDescriptionMatch = product.description.toLowerCase().includes(query);
+                const isPriceMatch = product.price >= minPrice && product.price <= maxPrice;
+                return (isNameMatch || isDescriptionMatch) && isPriceMatch;
+            });
+
+            displayProducts(filteredProducts); // Update displayed products
+        }
+
+        /**
+         * Function to debounce user input.
+         * @param {Function} func - Function to debounce.
+         * @param {number} delay - Debounce delay in milliseconds.
+         * @return {Function} - Debounced function.
+         */
+        function debounce(func, delay) {
+            let timerId;
+            return function (...args) {
+                clearTimeout(timerId);
+                timerId = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        // Attach event listeners to search input with debouncing
+        const searchInput = document.getElementById('search');
+        searchInput.addEventListener('input', debounce(function () {
+            applyFilters();
+        }, 300)); // Debounce delay of 300ms
+
+        // Attach event listener to price range dropdown
+        document.getElementById('price-range').addEventListener('change', applyFilters);
+
+        // Fetch products from JSON and display them on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('products.json')
+                .then(response => response.json()) // Convert response to JSON
+                .then(data => {
+                    window.products = data; // Store products globally for filtering
+                    displayProducts(data); // Display all products initially
+                })
+                .catch(error => console.error('Error fetching products:', error)); // Handle errors
+        });
+    </script>
+</body>
+</html>
